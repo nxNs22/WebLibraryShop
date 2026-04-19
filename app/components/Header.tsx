@@ -10,6 +10,7 @@ import {
   VenetianMask, UserRound, Baby, Sparkles,
   BookOpen, Mic, Tablet
 } from "lucide-react";
+import { useCart } from "../context/CartContext";
 
 // --- VERİ YAPILARI ---
 
@@ -75,6 +76,7 @@ function DropdownPanel({ type, onClose }: { type: string; onClose: () => void })
   };
 
   const content = getContent();
+
 
   return (
     <div className="absolute top-full left-0 w-full z-50 pt-2 animate-in fade-in duration-200">
@@ -185,6 +187,8 @@ export default function Header() {
     }, 150);
   };
 
+  const { cartItems } = useCart();
+
   return (
     <header className="w-full flex flex-col items-center bg-red-700 sticky top-0 z-50 shadow-md">
       {/* 1. TOP BAR */}
@@ -215,9 +219,12 @@ export default function Header() {
           <HelpCircle size={22} className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity" />
           <User size={22} className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity" />
           <div className="flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer hover:bg-emerald-700 transition-all shadow-md">
-            <ShoppingCart size={18} className="mr-2" />
-            <span className="hidden sm:inline">Empty</span>
-            <span className="bg-white text-emerald-700 px-1.5 rounded-full text-[10px] ml-2">0</span>
+<Link href="/cart" className="flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg ...">
+  <ShoppingCart size={18} className="mr-2" />
+  <span className="bg-white text-emerald-700 px-1.5 rounded-full text-[10px] ml-2">
+    {cartItems.length}
+  </span>
+</Link>
           </div>
         </div>
       </div>

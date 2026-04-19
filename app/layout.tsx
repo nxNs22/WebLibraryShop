@@ -1,12 +1,9 @@
-"use client";
-
-import { Inter } from "next/font/google";
-import "./globals.css";
+// app/layout.tsx
+import {CartProvider } from "./context/CartContext"; // Yolun doğru olduğundan emin ol
 import Header from "./components/Header";
-import Footer from "./components/Footer"; // Zaten var olan Footer'ı import ediyoruz
+import Footer from "./components/Footer";
+import "./globals.css"; // Bu satır yoksa tasarım asla yüklenmez!
 
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
@@ -15,17 +12,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {/* Üst kısım: Header her zaman burada */}
-        <Header />
-        
-        {/* Orta kısım: Sayfa içerikleri (Books, Home vb.) buraya gelecek */}
-        <main className="min-h-screen">
-          {children}
-        </main>
-
-        {/* Alt kısım: Footer her zaman en altta */}
-        <Footer />
+      <body>
+        {/* CartProvider her şeyi sarmalamalı! */}
+        <CartProvider>
+          {/* Header artık Provider içinde olduğu için useCart hata vermeyecek */}
+          <Header />
+          
+          <main className="min-h-screen">
+            {children}
+          </main>
+          
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );
