@@ -1,296 +1,270 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { 
+  Search, User, HelpCircle, ShoppingCart, 
+  Home, ChevronDown, Gift, Ticket,
+  Calendar, Headphones, Gamepad2, Video, 
+  Image as ImageIcon, PenTool, Monitor,
+  VenetianMask, UserRound, Baby, Sparkles,
+  BookOpen, Mic, Tablet
+} from "lucide-react";
+import { useCart } from "../context/CartContext";
 
-export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+// --- VERİ YAPILARI ---
 
-  const navItems = [
-    { label: "Books", hasDropdown: true },
-    { label: "E-books", hasDropdown: true },
-    { label: "Audiobooks", hasDropdown: true },
-    { label: "Other products", hasDropdown: true },
-    { label: "Gift tips", hasDropdown: true, icon: "🎁" },
-    { label: "Gift voucher", hasDropdown: false },
-  ];
+const languages = [
+  { name: "Books in Turkmen", flag: "🇹🇲", slug: "turkmen", count: "12 450" },
+  { name: "Books in Turkish", flag: "🇹🇷", slug: "turkish", count: "284 730" },
+  { name: "Books in Russian", flag: "🇷🇺", slug: "russian", count: "1 923 610" },
+];
+
+const ebookLanguages = [
+  { name: "E-books in Turkish", flag: "🇹🇷", slug: "turkish", count: "45 200" },
+  { name: "E-books in English", flag: "🇬🇧", slug: "english", count: "890 400" },
+];
+
+const audiobookLanguages = [
+  { name: "Audiobooks in Turkish", flag: "🇹🇷", slug: "turkish", count: "8 400" },
+  { name: "Audiobooks in English", flag: "🇬🇧", slug: "english", count: "210 000" },
+];
+
+const otherProducts = [
+  { name: "Calendar/Diary", icon: <Calendar size={28} />, count: "203 929", color: "bg-blue-500/20 text-blue-400" },
+  { name: "Audio", icon: <Headphones size={28} />, count: "192 774", color: "bg-purple-500/20 text-purple-400" },
+  { name: "Game/Toy", icon: <Gamepad2 size={28} />, count: "83 931", color: "bg-orange-500/20 text-orange-400" },
+  { name: "Video", icon: <Video size={28} />, count: "67 926", color: "bg-red-500/20 text-red-400" },
+  { name: "Printed items", icon: <ImageIcon size={28} />, count: "77 103", color: "bg-yellow-500/20 text-yellow-400" },
+  { name: "Stationery", icon: <PenTool size={28} />, count: "10 941", color: "bg-green-500/20 text-green-400" },
+  { name: "Digital", icon: <Monitor size={28} />, count: "11 146", color: "bg-indigo-500/20 text-indigo-400" },
+];
+
+const giftCategories = [
+  { 
+    name: "Gifts for women", 
+    icon: <VenetianMask size={32} />, 
+    href: "/gifts/women" // Artık [target] parametresine "women" gidecek
+  },
+  { 
+    name: "Gifts for men", 
+    icon: <UserRound size={32} />, 
+    href: "/gifts/men" 
+  },
+  { 
+    name: "Gifts for girls", 
+    icon: <Sparkles size={32} />, 
+    href: "/gifts/girls" 
+  },
+  { 
+    name: "Gifts for boys", 
+    icon: <Gamepad2 size={32} />, 
+    href: "/gifts/boys" 
+  },
+  { 
+    name: "Gifts for children", 
+    icon: <Baby size={32} />, 
+    href: "/gifts/children" 
+  },
+];
+function DropdownPanel({ type, onClose }: { type: string; onClose: () => void }) {
+  const getContent = () => {
+    if (type === "Books") return { title: "16 386 577 books in 175 languages", data: languages, basePath: "/books" };
+    if (type === "E-books") return { title: "1 245 000 e-books to download", data: ebookLanguages, basePath: "/e-books" };
+    if (type === "Audiobooks") return { title: "450 000 audiobooks for your ears", data: audiobookLanguages, basePath: "/audiobooks" };
+    return null;
+  };
+
+  const content = getContent();
+
 
   return (
-    <header className="sticky top-0 z-50">
-      {/* Top bar */}
-      <div className="bg-teal-800 text-white/80 text-xs py-1.5 px-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <a
-            href="#"
-            className="flex items-center gap-1.5 hover:text-white transition-colors"
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-              />
-            </svg>
-            Check order status
-          </a>
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:block">Free delivery over €30</span>
-            <span className="hidden sm:block">|</span>
-            <a href="#" className="hover:text-white transition-colors">EN</a>
-          </div>
-        </div>
-      </div>
-
-      {/* Main header */}
-      <div className="bg-teal-900 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 lg:gap-8">
-          {/* Logo */}
-          <a href="#" className="flex-shrink-0 flex flex-col items-center group">
-            <div className="relative w-10 h-10 mb-0.5">
-              <svg
-                viewBox="0 0 40 40"
-                fill="none"
-                className="w-full h-full"
-              >
-                <path
-                  d="M20 8 C15 4, 5 6, 5 14 C5 22, 20 32, 20 32 C20 32, 35 22, 35 14 C35 6, 25 4, 20 8Z"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  className="group-hover:stroke-teal-200 transition-colors"
-                />
-                <path
-                  d="M8 10 Q8 6, 14 6 M26 6 Q32 6, 32 10"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="1"
-                  className="group-hover:stroke-teal-200 transition-colors"
-                />
-              </svg>
-            </div>
-            <span className="text-white font-heading text-xl font-bold tracking-wider leading-none group-hover:text-teal-200 transition-colors">
-              LIBRISTO
-            </span>
-            <span className="text-teal-300 text-[10px] tracking-[0.2em] uppercase">
-              Be Whoever
-            </span>
-          </a>
-
-          {/* Search bar */}
-          <div className="flex-1 max-w-2xl hidden sm:flex">
-            <div className="flex w-full rounded-lg overflow-hidden shadow-md">
-              <div className="flex items-center bg-white/90 pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+    <div className="absolute top-full left-0 w-full z-50 pt-2 animate-in fade-in duration-200">
+      <div className="bg-teal-900 border-t-2 border-red-500 rounded-b-xl shadow-2xl">
+        <div className="px-6 py-10 max-w-7xl mx-auto">
+          
+          {/* 1. DİL TABANLI PANELLER (Books, E-books, Audiobooks) */}
+          {content && content.data && (
+            <>
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-10 text-center">{content.title}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto mb-8">
+                {content.data.map((lang: any) => {
+                  const safeSlug = (lang.slug || "").toLowerCase();
+                  return (
+                    <Link 
+                      key={lang.name} 
+                      href={`${content.basePath}/${safeSlug}`} 
+                      onClick={onClose}
+                      className="flex flex-col items-center gap-3 group hover:opacity-80 transition-opacity"
+                    >
+                      <div className="text-5xl md:text-6xl drop-shadow-lg group-hover:scale-110 transition-transform">{lang.flag}</div>
+                      <span className="text-teal-400 font-semibold text-sm group-hover:text-white">{lang.name}</span>
+                      <span className="text-white/50 text-sm">{lang.count}</span>
+                    </Link>
+                  );
+                })}
               </div>
-              <input
-                type="text"
-                placeholder="Enter book title, author, publisher, EAN,..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 py-2.5 px-3 bg-white/90 text-gray-700 text-sm focus:outline-none placeholder:text-gray-400"
-                id="search-input"
-              />
-              <button
-                className="bg-green-btn hover:bg-green-btn-hover text-white font-semibold px-6 py-2.5 text-sm transition-colors duration-200"
-                id="search-button"
-              >
-                Search
-              </button>
-            </div>
-          </div>
+            </>
+          )}
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2 lg:gap-4 ml-auto sm:ml-0">
-            {/* Help */}
-            <a
-              href="#"
-              className="hidden md:flex flex-col items-center text-white/70 hover:text-white transition-colors group"
-              id="help-link"
-            >
-              <svg
-                className="w-6 h-6 mb-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
-              <span className="text-[10px]">Help</span>
-            </a>
-
-            {/* My Account */}
-            <a
-              href="#"
-              className="hidden md:flex flex-col items-center text-white/70 hover:text-white transition-colors group"
-              id="account-link"
-            >
-              <svg
-                className="w-6 h-6 mb-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              <span className="text-[10px]">My account</span>
-            </a>
-
-            {/* Cart */}
-            <button
-              className="flex items-center gap-2 bg-green-btn hover:bg-green-btn-hover text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-lg"
-              id="cart-button"
-            >
-              <span className="hidden sm:inline">Empty</span> 🛒
-              <span className="relative">
-                <span className="absolute -top-3 -right-3 bg-coral text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                  0
-                </span>
-              </span>
-            </button>
-
-            {/* Mobile menu toggle */}
-            <button
-              className="lg:hidden text-white p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              id="mobile-menu-toggle"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {mobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile search */}
-        <div className="sm:hidden px-4 pb-3">
-          <div className="flex w-full rounded-lg overflow-hidden shadow-md">
-            <input
-              type="text"
-              placeholder="Search books..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 py-2.5 px-3 bg-white/90 text-gray-700 text-sm focus:outline-none"
-            />
-            <button className="bg-green-btn text-white font-semibold px-4 py-2.5 text-sm">
-              Search
-            </button>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="bg-teal-800/50 border-t border-teal-700/50">
-          <div className="max-w-7xl mx-auto px-4">
-            <ul
-              className={`${
-                mobileMenuOpen ? "flex" : "hidden"
-              } lg:flex flex-col lg:flex-row items-start lg:items-center gap-0 lg:gap-0`}
-            >
-              {/* Home icon */}
-              <li>
-                <a
-                  href="#"
-                  className="flex items-center px-3 py-3 text-white/80 hover:text-white hover:bg-teal-700/50 transition-all duration-200"
-                  id="nav-home"
+          {/* 2. OTHER PRODUCTS PANELİ */}
+          {type === "Other products" && (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              {otherProducts.map((product) => (
+                <Link 
+                  key={product.name} 
+                  href={`/other/${product.name.toLowerCase().replace("/", "-")}`}
+                  onClick={onClose} 
+                  className="flex flex-col items-center p-4 rounded-xl hover:bg-white/5 transition-all group"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
-                </a>
-              </li>
-
-              {navItems.map((item, i) => (
-                <li key={i} className="w-full lg:w-auto">
-                  <a
-                    href="#"
-                    className={`flex items-center gap-1 px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-teal-700/50 ${
-                      item.label === "Gift voucher"
-                        ? "text-coral hover:text-coral"
-                        : "text-white/90 hover:text-white"
-                    }`}
-                    id={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                  >
-                    {item.icon && <span>{item.icon}</span>}
-                    {item.label}
-                    {item.hasDropdown && (
-                      <svg
-                        className="w-3 h-3 ml-0.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    )}
-                  </a>
-                </li>
+                  <div className={`w-16 h-16 ${product.color} rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-white`}>
+                    {product.icon}
+                  </div>
+                  <span className="text-white font-bold text-[12px] text-center mb-1">{product.name}</span>
+                  <span className="text-white/40 text-[10px] italic">{product.count}</span>
+                </Link>
               ))}
-            </ul>
+            </div>
+          )}
+
+          {/* 3. GIFT TIPS PANELİ */}
+          {type === "Gift tips" && (
+            <div className="flex flex-col lg:flex-row gap-12 items-center lg:items-start">
+              <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-6">
+                {giftCategories.map((item) => (
+                  <Link key={item.name} href={item.href} onClick={onClose} className="flex flex-col items-center p-4 rounded-xl hover:bg-white/5 group">
+                    <div className="w-20 h-20 bg-white/10 text-teal-400 rounded-full flex items-center justify-center mb-4 group-hover:bg-teal-500 group-hover:text-white transition-all shadow-lg group-hover:scale-110">
+                      {item.icon}
+                    </div>
+                    <span className="text-white font-bold text-sm text-center leading-tight">{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+              <div className="hidden lg:block w-px bg-white/10 self-stretch" />
+              <div className="w-full lg:w-72 flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-pink-500/20 text-pink-500 rounded-full flex items-center justify-center mb-4 border border-pink-500/30">
+                  <Ticket size={40} />
+                </div>
+                <h3 className="text-pink-400 font-bold text-xl mb-1 text-nowrap">Gift voucher</h3>
+                <Link href="/gift-voucher" className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-2.5 rounded-full font-bold text-sm">Buy now</Link>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-10 pt-6 border-t border-white/10 flex justify-center text-white/80 text-sm italic">
+            <Sparkles className="text-emerald-400 mr-2" size={18} />
+            Don't know what to choose? We are here to help!
           </div>
-        </nav>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// --- ANA HEADER ---
+
+export default function Header() {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const navItems = [
+    { label: "Books", hasDropdown: true, icon: <BookOpen size={16} /> },
+    { label: "E-books", hasDropdown: true, icon: <Tablet size={16} /> },
+    { label: "Audiobooks", hasDropdown: true, icon: <Mic size={16} /> },
+    { label: "Other products", hasDropdown: true, icon: <Gamepad2 size={16} /> },
+    { label: "Gift tips", hasDropdown: true, icon: <Gift size={16} /> },
+    { label: "Gift voucher", hasDropdown: false, href: "/gift-voucher" },
+  ];
+
+  const handleMouseEnter = (label: string) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpenDropdown(label);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 150);
+  };
+
+  const { cartItems } = useCart();
+
+  return (
+    <header className="w-full flex flex-col items-center bg-red-700 sticky top-0 z-50 shadow-md">
+      {/* 1. TOP BAR */}
+      <div className="w-full bg-red-800 text-white/80 text-[11px] py-1.5 flex justify-center">
+        <div className="w-full max-w-7xl px-4 flex justify-between items-center">
+          <span className="hover:text-white cursor-pointer transition-colors">Check order status</span>
+          <div className="flex gap-4">
+            <span className="hidden md:inline">Free delivery over €30</span>
+            <span className="font-bold cursor-pointer hover:text-white uppercase tracking-widest underline underline-offset-4">EN</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. MAIN HEADER */}
+      <div className="w-full max-w-7xl px-4 py-4 flex items-center justify-between gap-6 lg:gap-12">
+        <Link href="/" className="flex flex-col items-center group flex-shrink-0">
+          <span className="text-white font-black text-2xl tracking-tighter leading-none italic group-hover:text-red-100">LIBRISTO</span>
+          <span className="text-red-300 text-[9px] tracking-[0.2em] uppercase font-bold">Be Whoever</span>
+        </Link>
+
+        <div className="flex-1 max-w-2xl relative flex items-center bg-white rounded-lg overflow-hidden shadow-inner">
+          <Search size={18} className="ml-4 text-gray-400" />
+          <input type="text" placeholder="Search books, authors, categories..." className="w-full h-11 pl-3 pr-24 text-sm focus:outline-none text-gray-800" />
+          <button className="absolute right-0 h-11 px-6 bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors">Search</button>
+        </div>
+
+        <div className="flex items-center gap-5 text-white flex-shrink-0">
+          <HelpCircle size={22} className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity" />
+          <User size={22} className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity" />
+          <div className="flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer hover:bg-emerald-700 transition-all shadow-md">
+<Link href="/cart" className="flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg ...">
+  <ShoppingCart size={18} className="mr-2" />
+  <span className="bg-white text-emerald-700 px-1.5 rounded-full text-[10px] ml-2">
+    {cartItems.length}
+  </span>
+</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. NAVIGATION */}
+      <nav className="w-full bg-red-900/30 border-t border-white/5 flex justify-center relative">
+        <div className="w-full max-w-7xl px-4 relative flex items-center" onMouseLeave={handleMouseLeave}>
+          <ul className="flex items-center">
+            <li className="px-4 py-3 text-white hover:bg-white/10 cursor-pointer"><Home size={18} /></li>
+            {navItems.map((item) => (
+              <li 
+                key={item.label} 
+                className="relative"
+                onMouseEnter={() => item.hasDropdown && handleMouseEnter(item.label)}
+              >
+                {item.hasDropdown ? (
+                  <button
+                    className={`px-5 py-3 text-[13px] font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                      openDropdown === item.label ? "bg-teal-900 text-white shadow-inner" : "text-white/90 hover:bg-white/10"
+                    }`}
+                  >
+                    {item.icon} {item.label}
+                    <ChevronDown size={14} className={`transition-transform duration-300 ${openDropdown === item.label ? "rotate-180" : ""}`} />
+                  </button>
+                ) : (
+                  <Link href={item.href || "#"} className="px-5 py-3 text-[13px] font-bold text-white/90 hover:bg-white/10 flex items-center gap-2">
+                    {item.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+          
+          {openDropdown && (
+            <div onMouseEnter={() => handleMouseEnter(openDropdown)}>
+              <DropdownPanel type={openDropdown} onClose={() => setOpenDropdown(null)} />
+            </div>
+          )}
+        </div>
+      </nav>
     </header>
   );
 }
