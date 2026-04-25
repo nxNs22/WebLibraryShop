@@ -4,6 +4,9 @@ import { useParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { Filter, Star, ShoppingCart, ChevronDown } from "lucide-react";
 
+// 1. Context'ten useCart'ı import et
+import { useCart } from "../../context/CartContext"; 
+
 // Örnek Veri Seti
 const ALL_BOOKS = [
   { id: 1, title: "Miras", author: "Berdinazar Hudaynazarow", price: 15.50, lang: "turkmen", category: "Classic", image: "https://via.placeholder.com/150x220", rating: 5 },
@@ -20,6 +23,20 @@ export default function BooksByLanguage() {
   const currentLanguage = (params?.languages as string) || "";
 
   const [priceRange, setPriceRange] = useState(100);
+
+  // 2. addToCart fonksiyonunu Context'ten çek
+  const { addToCart } = useCart();
+
+  // 3. Sepete Ekleme Fonksiyonu
+  const handleAddToCart = (book: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    addToCart({
+      id: book.id,
+      title: book.title,
+      price: book.price,
+      cover: book.image // Verimizde resim "image" olarak geçtiği için "cover" parametresine eşitliyoruz
+    });
+  };
 
   // URL'deki dile göre kitapları filtrele
   const filteredBooks = useMemo(() => {
@@ -94,7 +111,12 @@ export default function BooksByLanguage() {
                   alt={book.title} 
                   className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500" 
                 />
-                <button className="absolute bottom-3 right-3 bg-emerald-600 text-white p-2.5 rounded-full shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                {/* 4. Butona onClick ve handleAddToCart eklendi */}
+                <button 
+                  onClick={(e) => handleAddToCart(book, e)}
+                  className="absolute bottom-3 right-3 bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-full shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all"
+                  title="Add to Cart"
+                >
                   <ShoppingCart size={18} />
                 </button>
               </div>

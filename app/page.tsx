@@ -9,14 +9,18 @@ import Footer from "./components/Footer";
 export default function Home() {
   return (
     <>
-
+      
+ 
+      
       <main className="flex-1">
         <HeroSection />
         <FeaturesBar />
-        <BestsellersSection />
+        {/* BestsellersSection artık Supabase'den veri çekiyor */}
+        <BestsellersSection /> 
         <CategoriesSection />
         <PromoBanner />
       </main>
+
 
     </>
   );

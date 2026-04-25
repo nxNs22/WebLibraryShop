@@ -1,29 +1,34 @@
-// app/layout.tsx
-import {CartProvider } from "./context/CartContext"; // Yolun doğru olduğundan emin ol
+import type { Metadata } from "next";
+import { AuthProvider } from "./context/AuthContext"; 
+import { CartProvider } from "./context/CartContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import "./globals.css"; // Bu satır yoksa tasarım asla yüklenmez!
+import "./globals.css";
 
+export const metadata: Metadata = {
+  title: "Web Library Shop",
+  description: "The best book store",
+};
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body>
-        {/* CartProvider her şeyi sarmalamalı! */}
-        <CartProvider>
-          {/* Header artık Provider içinde olduğu için useCart hata vermeyecek */}
-          <Header />
-          
-          <main className="min-h-screen">
-            {children}
-          </main>
-          
-          <Footer />
-        </CartProvider>
+      <body className="antialiased">
+        <AuthProvider>
+          <CartProvider>
+            <Header />
+            
+            <main className="min-h-screen">
+              {children}
+            </main>
+            
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

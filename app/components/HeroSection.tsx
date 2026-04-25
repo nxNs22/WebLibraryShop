@@ -76,10 +76,10 @@ export default function HeroSection() {
       >
         {/* Background image container */}
         <div
-          className={`absolute inset-0 transition-opacity duration-500 z-0 ${
+          className={`transition-opacity duration-500 ${
             isTransitioning ? "opacity-0" : "opacity-100"
           }`}
-          style={{ position: 'absolute', inset: 0 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}
         >
           <Image
             src={active.image}
