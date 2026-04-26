@@ -1,53 +1,104 @@
 "use client";
-import React, { createContext, useContext, useState, ReactNode } from "react";
 
-interface CartItem {
-  id: number;
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+} from "react";
+
+export interface CartItem {
+  id: string | number;
   title: string;
-  author: string;
-  price: number;
-  image: string;
+  price: number | string;
   quantity: number;
-  type: string;
+  cover?: string;
 }
 
 interface CartContextType {
-  cartItems: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number) => void;
-  totalPrice: number;
+  cart: CartItem[];
+  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  removeFromCart: (id: string | number) => void;
+  cartCount: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  
+  // İlk yüklemeyi takip etmek için state yerine ref kullanıyoruz (Re-render tetiklemez)
+  const isFirstRender = useRef(true);
 
-  const addToCart = (item: CartItem) => {
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+  useEffect(() => {
+    // 1. AŞAMA: Sayfa ilk yüklendiğinde (Mount) - Sadece Oku
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      try {
+        const savedCart = localStorage.getItem("my-book-cart");
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart) as CartItem[];
+          if (Array.isArray(parsed)) {
+            setCart(parsed);
+          }
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("Sepet okuma hatası:", err.message);
+        }
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return; // İlk render'da aşağıdaki kaydetme işlemini atla ki boş sepeti kaydetmesin
+    }
+
+    // 2. AŞAMA: Sepet her değiştiğinde (Update) - Kaydet
+    try {
+      localStorage.setItem("my-book-cart", JSON.stringify(cart));
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Sepet kaydetme hatası:", err.message);
+      } else {
+        console.error("Beklenmedik sepet kaydetme hatası:", err);
+      }
+    }
+  }, [cart]); // Her iki işlem için tek bir bağımlılık yeterli
+
+  const addToCart = (item: Omit<CartItem, "quantity">) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((i) => i.id === item.id);
+
+      if (existingItem) {
+        return prevCart.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
+        );
+      }
+
+      return [...prevCart, { ...item, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (id: number) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  const removeFromCart = (id: string | number) => {
+    setCart((prevCart) => prevCart.filter((i) => i.id !== id));
   };
 
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, totalPrice }}>
+    <CartContext.Provider
+      value={{ cart, addToCart, removeFromCart, cartCount }}
+    >
       {children}
     </CartContext.Provider>
   );
 }
 
-export const useCart = () => {
+export function useCart() {
   const context = useContext(CartContext);
-  if (!context) throw new Error("useCart must be used within a CartProvider");
+  if (context === undefined) {
+    throw new Error(
+      "useCart hook'u sadece CartProvider içinde kullanılabilir!",
+    );
+  }
   return context;
-};
+}

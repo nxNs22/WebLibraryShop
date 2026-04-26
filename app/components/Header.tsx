@@ -11,6 +11,9 @@ import {
   BookOpen, Mic, Tablet
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+// Supabase'i import ediyoruz
+import { supabase, getErrorMessage } from "../lib/supabaseClient"; 
 
 // --- VERİ YAPILARI ---
 
@@ -44,7 +47,7 @@ const giftCategories = [
   { 
     name: "Gifts for women", 
     icon: <VenetianMask size={32} />, 
-    href: "/gifts/women" // Artık [target] parametresine "women" gidecek
+    href: "/gifts/women"
   },
   { 
     name: "Gifts for men", 
@@ -67,6 +70,7 @@ const giftCategories = [
     href: "/gifts/children" 
   },
 ];
+
 function DropdownPanel({ type, onClose }: { type: string; onClose: () => void }) {
   const getContent = () => {
     if (type === "Books") return { title: "16 386 577 books in 175 languages", data: languages, basePath: "/books" };
@@ -166,6 +170,41 @@ function DropdownPanel({ type, onClose }: { type: string; onClose: () => void })
 export default function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { user } = useAuth();
+  const { cartCount } = useCart();
+
+  // İsmi saklamak için yeni state
+  const [userName, setUserName] = useState<string | null>(null);
+
+  // Veritabanından ismin çekilmesi
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (!user) {
+        setUserName(null);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle(); // <--- BU SATIR DEĞİŞTİRİLDİ: .single() yerine .maybeSingle() kullanıldı
+
+        if (error) throw error;
+
+        // Sadece isim girilmişse göster
+        if (data && data.full_name && data.full_name.trim() !== "") {
+          setUserName(data.full_name.split(" ")[0]); 
+        } else {
+          setUserName(null);
+        }
+      } catch (err: unknown) {
+        console.error("Name fetch error:", getErrorMessage(err));
+      }
+    };
+
+    fetchUserName();
+  }, [user]);
 
   const navItems = [
     { label: "Books", hasDropdown: true, icon: <BookOpen size={16} /> },
@@ -186,8 +225,6 @@ export default function Header() {
       setOpenDropdown(null);
     }, 150);
   };
-
-  const { cartItems } = useCart();
 
   return (
     <header className="w-full flex flex-col items-center bg-red-700 sticky top-0 z-50 shadow-md">
@@ -217,15 +254,36 @@ export default function Header() {
 
         <div className="flex items-center gap-5 text-white flex-shrink-0">
           <HelpCircle size={22} className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity" />
-          <User size={22} className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity" />
-          <div className="flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer hover:bg-emerald-700 transition-all shadow-md">
-<Link href="/cart" className="flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg ...">
-  <ShoppingCart size={18} className="mr-2" />
-  <span className="bg-white text-emerald-700 px-1.5 rounded-full text-[10px] ml-2">
-    {cartItems.length}
-  </span>
-</Link>
-          </div>
+          
+          {/* Akıllı Kullanıcı İkonu / İsim */}
+          <Link href={user ? "/account" : "/auth"} className="flex items-center gap-2 group">
+            {user && userName ? (
+              <span className="text-sm font-bold text-emerald-300 group-hover:text-white transition-colors capitalize">
+                Hi, {userName}
+              </span>
+            ) : (
+              <User 
+                size={22} 
+                className={`cursor-pointer transition-opacity ${user ? "opacity-100 text-teal-300" : "opacity-80 group-hover:opacity-100"}`} 
+              />
+            )}
+          </Link>
+          
+          {/* Güncellenmiş Sepet Butonu */}
+          <Link 
+            href="/cart" 
+            className="relative flex items-center bg-emerald-600 px-4 py-2.5 rounded-lg font-bold text-sm cursor-pointer hover:bg-emerald-700 transition-all shadow-md"
+          >
+            <ShoppingCart size={18} />
+            <span className="hidden md:inline-block ml-2 text-white">Cart</span>
+            
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white border-2 border-emerald-600">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
         </div>
       </div>
 
@@ -233,7 +291,9 @@ export default function Header() {
       <nav className="w-full bg-red-900/30 border-t border-white/5 flex justify-center relative">
         <div className="w-full max-w-7xl px-4 relative flex items-center" onMouseLeave={handleMouseLeave}>
           <ul className="flex items-center">
-            <li className="px-4 py-3 text-white hover:bg-white/10 cursor-pointer"><Home size={18} /></li>
+            <li className="px-4 py-3 text-white hover:bg-white/10 cursor-pointer">
+  <Link href="/"><Home size={18} /></Link>
+</li>
             {navItems.map((item) => (
               <li 
                 key={item.label} 
