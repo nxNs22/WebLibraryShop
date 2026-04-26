@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "./context/AuthContext"; 
 import { CartProvider } from "./context/CartContext";
-import Header from "./components/Header";
+import HeaderWrapper from "./components/HeaderWrapper";
 import Footer from "./components/Footer";
 import "./globals.css";
 
@@ -20,7 +20,7 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <CartProvider>
-            <Header />
+            <HeaderWrapper />
             
             <main className="min-h-screen">
               {children}
