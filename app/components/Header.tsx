@@ -175,6 +175,7 @@ function DropdownPanel({ type, onClose }: { type: string; onClose: () => void })
 export default function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const { user } = useAuth();
   const { cartCount } = useCart();
 
@@ -231,6 +232,19 @@ export default function Header() {
     }, 150);
   };
 
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // Search sayfasına yönlendir
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+    }
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 flex flex-col items-center w-full bg-red-700 shadow-md">
       {/* 1. TOP BAR */}
@@ -253,8 +267,20 @@ export default function Header() {
 
         <div className="relative flex items-center flex-1 max-w-2xl overflow-hidden bg-white rounded-lg shadow-inner">
           <Search size={18} className="ml-4 text-gray-400" />
-          <input type="text" placeholder="Search books, authors, categories..." className="w-full pl-3 pr-24 text-sm text-gray-800 h-11 focus:outline-none" />
-          <button className="absolute right-0 px-6 text-sm font-bold text-white transition-colors h-11 bg-emerald-600 hover:bg-emerald-700">Search</button>
+          <input 
+            type="text" 
+            placeholder="Search books, authors, categories..." 
+            className="w-full pl-3 pr-24 text-sm text-gray-800 h-11 focus:outline-none" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearchKeyPress}
+          />
+          <button 
+            onClick={handleSearch}
+            className="absolute right-0 px-6 text-sm font-bold text-white transition-colors h-11 bg-emerald-600 hover:bg-emerald-700"
+          >
+            Search
+          </button>
         </div>
 
         <div className="flex items-center flex-shrink-0 gap-5 text-white">

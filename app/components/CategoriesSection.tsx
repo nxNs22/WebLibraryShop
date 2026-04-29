@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 const categories = [
   {
     name: "Roman",
@@ -28,6 +30,12 @@ const categories = [
 ];
 
 export default function CategoriesSection() {
+  const router = useRouter();
+
+  const handleCategoryClick = (categoryName: string) => {
+    router.push(`/search?q=${encodeURIComponent(categoryName)}`);
+  };
+
   return (
     <section className="py-16 bg-gradient-to-b from-white to-teal-50/50" id="categories-section">
       <div className="max-w-7xl mx-auto px-4">
@@ -42,10 +50,10 @@ export default function CategoriesSection() {
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
           {categories.map((category, i) => (
-            <a
+            <button
               key={i}
-              href="#"
-              className={`group relative bg-gradient-to-br ${category.gradient} rounded-2xl p-5 md:p-6 text-white overflow-hidden hover-lift`}
+              onClick={() => handleCategoryClick(category.name)}
+              className={`group relative bg-gradient-to-br ${category.gradient} rounded-2xl p-5 md:p-6 text-white overflow-hidden hover-lift cursor-pointer transition-all duration-300 border-0`}
             >
               <div className="absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-500" />
               <div className="absolute -right-2 -top-2 w-12 h-12 rounded-full bg-white/5 group-hover:scale-125 transition-transform duration-500" />
@@ -63,7 +71,7 @@ export default function CategoriesSection() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       </div>
