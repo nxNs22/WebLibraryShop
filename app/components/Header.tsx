@@ -261,8 +261,7 @@ export default function Header() {
       {/* 2. MAIN HEADER */}
       <div className="flex items-center justify-between w-full gap-6 px-4 py-4 max-w-7xl lg:gap-12">
         <Link href="/" className="flex flex-col items-center flex-shrink-0 group">
-          <span className="text-2xl italic font-black leading-none tracking-tighter text-white group-hover:text-red-100">LIBRISTO</span>
-          <span className="text-red-300 text-[9px] tracking-[0.2em] uppercase font-bold">Be Whoever</span>
+          <span className="text-2xl italic font-black leading-none tracking-tighter text-white group-hover:text-red-100">LIBRISTO</span>          <span className="text-red-300 text-[9px] tracking-[0.2em] uppercase font-bold">Be Whoever</span>
         </Link>
 
         <div className="relative flex items-center flex-1 max-w-2xl overflow-hidden bg-white rounded-lg shadow-inner">

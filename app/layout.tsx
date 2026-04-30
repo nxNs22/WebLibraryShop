@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import AIChatWidget from "./components/AIChatWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({
             </main>
             
             <Footer />
+            <AIChatWidget />
           </CartProvider>
         </AuthProvider>
       </body>
