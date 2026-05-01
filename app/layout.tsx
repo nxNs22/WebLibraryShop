@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "./context/AuthContext"; 
 import { CartProvider } from "./context/CartContext";
-import HeaderWrapper from "./components/HeaderWrapper";
+import Header from "./components/Header";
 import Footer from "./components/Footer";
+import AIChatWidget from "./components/AIChatWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,13 +21,14 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <CartProvider>
-            <HeaderWrapper />
+            <Header />
             
             <main className="min-h-screen">
               {children}
             </main>
             
             <Footer />
+            <AIChatWidget />
           </CartProvider>
         </AuthProvider>
       </body>
