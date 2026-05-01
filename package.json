@@ -1,36 +1,40 @@
 {
-  "name": "web-library-shop",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@refinedev/antd": "6.0.3",
-    "@refinedev/core": "5.0.12",
-    "@refinedev/nextjs-router": "7.0.5",
-    "@refinedev/supabase": "6.0.2",
-    "@supabase/supabase-js": "2.103.3",
-    "antd": "5.23.0",
-    "lucide-react": "0.378.0",
-    "next": "14.2.15",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "xlsx": "0.18.5"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "4.0.0",
-    "@types/node": "20.12.7",
-    "@types/react": "18.3.1",
-    "@types/react-dom": "18.3.0",
-    "autoprefixer": "10.4.19",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.15",
-    "postcss": "8.4.38",
-    "tailwindcss": "4.0.0",
-    "typescript": "5.4.5"
-  }
+    "name": "web-library-shop",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@refinedev/antd": "6.0.3",
+        "@refinedev/core": "5.0.12",
+        "@refinedev/nextjs-router": "7.0.5",
+        "@refinedev/supabase": "6.0.2",
+        "@stripe/react-stripe-js": "^6.3.0",
+        "@stripe/stripe-js": "^9.4.0",
+        "@supabase/supabase-js": "2.103.3",
+        "antd": "5.23.0",
+        "iyzipay": "^2.0.67",
+        "lucide-react": "0.378.0",
+        "next": "14.2.15",
+        "react": "18.3.1",
+        "react-dom": "18.3.1",
+        "stripe": "^22.1.0",
+        "xlsx": "0.18.5"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "^4.2.4",
+        "@types/node": "20.12.7",
+        "@types/react": "18.3.1",
+        "@types/react-dom": "18.3.0",
+        "autoprefixer": "10.4.19",
+        "eslint": "8.57.0",
+        "eslint-config-next": "14.2.15",
+        "postcss": "8.4.38",
+        "tailwindcss": "^4.2.4",
+        "typescript": "5.4.5"
+    }
 }

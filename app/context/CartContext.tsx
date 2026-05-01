@@ -15,6 +15,7 @@ export interface CartItem {
   price: number | string;
   quantity: number;
   cover?: string;
+  author?: string;
 }
 
 interface CartContextType {
