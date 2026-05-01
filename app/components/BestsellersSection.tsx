@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { supabase, getErrorMessage } from "../lib/supabaseClient"; 
-// 1. Hook'u import et
 import { useCart } from "../context/CartContext"; 
 
 function StarRating({ rating }: { rating: number }) {
@@ -31,27 +30,27 @@ export default function BestsellersSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 2. addToCart fonksiyonunu çek
   const { addToCart } = useCart(); 
 
-  // Sepete eklendiğinde çalışacak fonksiyon
   const handleAddToCart = (book: any, e: React.MouseEvent) => {
-    e.preventDefault(); // Sayfanın üste atmasını engeller
+    e.preventDefault();
     addToCart({
       id: book.id,
       title: book.title,
       price: book.price,
-      // Eğer veritabanında cover görseli yoksa şimdilik emoji atıyoruz
-      cover: book.genre === 'Bilim Kurgu' ? '🚀' : book.genre === 'Tarih' ? '🏛️' : '📚' 
+      // details içinden varsa görseli, yoksa placeholder'ı çekiyoruz
+      cover: book.image_url || 'https://via.placeholder.com/150' 
     });
   };
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
+        // 🌟 DEĞİŞİKLİK 1: Artık 'products' tablosuna bakıyoruz ve category_id = 1 (Kitaplar) olanları alıyoruz
         const { data, error: dbError } = await supabase
-          .from('books')
+          .from('products')
           .select('*')
+          .eq('category_id', 1) 
           .limit(6)
           .order('created_at', { ascending: false });
 
@@ -81,8 +80,8 @@ export default function BestsellersSection() {
           </div>
         </div>
 
-        {loading && <p className="text-teal-600">Kitaplar yükleniyor...</p>}
-        {error && <p className="text-red-500">Hata: {error}</p>}
+        {loading && <p className="text-teal-600 text-center py-10">Kitaplar yükleniyor...</p>}
+        {error && <p className="text-red-500 text-center py-10">Hata: {error}</p>}
 
         {!loading && !error && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
@@ -93,24 +92,30 @@ export default function BestsellersSection() {
                 onMouseEnter={() => setHoveredBook(book.id)}
                 onMouseLeave={() => setHoveredBook(null)}
               >
-                {/* Stok Durumu Rozeti */}
+                {/* Stok Durumu */}
                 {book.stock < 30 && (
                   <div className="absolute top-2 left-2 z-10 bg-coral text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
                     Son {book.stock} Ürün!
                   </div>
                 )}
 
-                <div className="relative aspect-[3/4] bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center overflow-hidden">
-                  <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                    {book.genre === 'Bilim Kurgu' ? '🚀' : book.genre === 'Tarih' ? '🏛️' : '📚'}
-                  </span>
+                <div className="relative aspect-[3/4] bg-gray-100 flex items-center justify-center overflow-hidden">
+                  {/* 🌟 DEĞİŞİKLİK 2: Eğer görsel varsa onu, yoksa placeholder gösteriyoruz */}
+                  {book.image_url ? (
+                    <img 
+                      src={book.image_url} 
+                      alt={book.title} 
+                      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105" 
+                    />
+                  ) : (
+                    <span className="text-6xl group-hover:scale-110 transition-transform duration-300">📚</span>
+                  )}
 
                   <div
                     className={`absolute inset-0 bg-teal-900/60 flex items-center justify-center gap-2 transition-opacity duration-300 ${
                       hoveredBook === book.id ? "opacity-100" : "opacity-0"
                     }`}
                   >
-                    {/* 3. Butona onClick eventi ve handleAddToCart bağlandı */}
                     <button 
                       onClick={(e) => handleAddToCart(book, e)}
                       className="bg-white text-teal-700 p-2 rounded-full hover:bg-teal-50 transition-colors shadow-lg"
@@ -127,7 +132,8 @@ export default function BestsellersSection() {
                   <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-tight group-hover:text-teal-700 transition-colors">
                     {book.title}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">{book.author}</p>
+                  {/* 🌟 DEĞİŞİKLİK 3: Yazar bilgisini artık 'details' sütunundan çekiyoruz */}
+                  <p className="text-xs text-gray-500 mt-1">{book.details?.author || 'Yazar Belirtilmemiş'}</p>
                   <StarRating rating={5} />
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-base font-bold text-teal-700">
