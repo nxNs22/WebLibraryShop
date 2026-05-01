@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { supabase, getErrorMessage } from "../lib/supabaseClient";
 import { Star, ShoppingCart, Filter } from "lucide-react";
 import { useCart } from "../context/CartContext";
@@ -30,7 +30,7 @@ const LOCAL_BOOKS: Book[] = [
   { id: 8, title: "The Hobbit", author: "J.R.R. Tolkien", price: 17.50, language: "english", category: "Fantastik", image: "https://via.placeholder.com/150x220" },
 ];
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   
@@ -293,5 +293,23 @@ export default function SearchPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+function SearchPageFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <p className="text-gray-500">Arama hazırlanıyor...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<SearchPageFallback />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

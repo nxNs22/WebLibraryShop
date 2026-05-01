@@ -34,8 +34,8 @@ const ebookLanguages = [
 const audiobookLanguages = [
   { name: "Audiobooks in Turkish", flag: "🇹🇷", slug: "turkish", count: "8 400" },
   { name: "Audiobooks in English", flag: "🇬🇧", slug: "english", count: "210 000" },
-  { name: "Audiobooks in Romanian", flag: "🇷🇴", slug: "turkish", count: "8 400" },
-  { name: "Audiobooks in Bulgarian", flag: "🇧🇬", slug: "turkish", count: "8 400" }
+  { name: "Audiobooks in Romanian", flag: "🇷🇴", slug: "romanian", count: "8 400" },
+  { name: "Audiobooks in Bulgarian", flag: "🇧🇬", slug: "bulgarian", count: "8 400" }
 ];
 
 const otherProducts = [
@@ -76,6 +76,13 @@ const giftCategories = [
   },
 ];
 
+type LanguageItem = {
+  name: string;
+  flag: string;
+  slug: string;
+  count: string;
+};
+
 function DropdownPanel({ type, onClose }: { type: string; onClose: () => void }) {
   const getContent = () => {
     if (type === "Books") return { title: "16 386 577 books in 175 languages", data: languages, basePath: "/books" };
@@ -97,7 +104,7 @@ function DropdownPanel({ type, onClose }: { type: string; onClose: () => void })
             <>
               <h2 className="mb-10 text-3xl font-bold text-center text-white md:text-5xl">{content.title}</h2>
               <div className="grid max-w-2xl grid-cols-1 gap-6 mx-auto mb-8 md:grid-cols-3">
-                {content.data.map((lang: any) => {
+                {content.data.map((lang: LanguageItem) => {
                   const safeSlug = (lang.slug || "").toLowerCase();
                   return (
                     <Link 
@@ -162,7 +169,7 @@ function DropdownPanel({ type, onClose }: { type: string; onClose: () => void })
 
           <div className="flex justify-center pt-6 mt-10 text-sm italic border-t border-white/10 text-white/80">
             <Sparkles className="mr-2 text-emerald-400" size={18} />
-            Don't know what to choose? We are here to help!
+            Don&apos;t know what to choose? We are here to help!
           </div>
         </div>
       </div>
@@ -261,7 +268,7 @@ export default function Header() {
       {/* 2. MAIN HEADER */}
       <div className="flex items-center justify-between w-full gap-6 px-4 py-4 max-w-7xl lg:gap-12">
         <Link href="/" className="flex flex-col items-center flex-shrink-0 group">
-          <span className="text-2xl italic font-black leading-none tracking-tighter text-white group-hover:text-red-100">LIBRISTO</span>          <span className="text-red-300 text-[9px] tracking-[0.2em] uppercase font-bold">Be Whoever</span>
+          <span className="text-2xl italic font-black leading-none tracking-tighter text-white group-hover:text-red-100">blendartbook</span>          <span className="text-red-300 text-[9px] tracking-[0.2em] uppercase font-bold">Be Whoever</span>
         </Link>
 
         <div className="relative flex items-center flex-1 max-w-2xl overflow-hidden bg-white rounded-lg shadow-inner">

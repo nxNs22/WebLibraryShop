@@ -1,12 +1,64 @@
 import { createClient } from "@supabase/supabase-js";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_VERSION = process.env.GEMINI_API_VERSION ?? "v1beta";
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 interface ChatMessage {
   role: "user" | "model";
   parts: { text: string }[];
+}
+
+type GeminiModelListItem = {
+  name?: string;
+  supportedGenerationMethods?: string[];
+};
+
+function normalizeGeminiModelId(model: string): string {
+  const trimmed = model.trim();
+  if (!trimmed) return trimmed;
+  return trimmed.startsWith("models/") ? trimmed.slice("models/".length) : trimmed;
+}
+
+function buildGeminiSseUrl({
+  apiKey,
+  apiVersion,
+  model,
+}: {
+  apiKey: string;
+  apiVersion: string;
+  model: string;
+}): string {
+  const modelId = normalizeGeminiModelId(model);
+  return `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:streamGenerateContent?alt=sse&key=${apiKey}`;
+}
+
+async function getFallbackGeminiModelId(apiKey: string, apiVersion: string): Promise<string | null> {
+  try {
+    const listUrl = `https://generativelanguage.googleapis.com/${apiVersion}/models?key=${apiKey}`;
+    const res = await fetch(listUrl, { method: "GET" });
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as { models?: GeminiModelListItem[] };
+    const models = Array.isArray(data.models) ? data.models : [];
+
+    const candidates = models
+      .filter(
+        (m) =>
+          Array.isArray(m.supportedGenerationMethods) &&
+          (m.supportedGenerationMethods.includes("streamGenerateContent") ||
+            m.supportedGenerationMethods.includes("generateContent"))
+      )
+      .map((m) => (typeof m.name === "string" ? normalizeGeminiModelId(m.name) : null))
+      .filter((name): name is string => Boolean(name));
+
+    const flash = candidates.find((name) => name.includes("flash"));
+    return flash ?? candidates[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // Fetch some books from Supabase to give the AI context about inventory
@@ -36,7 +88,7 @@ async function getBookInventoryContext(): Promise<string> {
   }
 }
 
-const SYSTEM_PROMPT = `You are "Libristo AI", the friendly and knowledgeable AI assistant for Libristo — a premium online bookstore with the world's widest selection of books in multiple languages (English, Turkish, Romanian, Bulgarian).
+const SYSTEM_PROMPT = `You are "blendartbook AI", the friendly and knowledgeable AI assistant for blendartbook — a premium online bookstore with the world's widest selection of books in multiple languages (English, Turkish, Romanian, Bulgarian).
 
 Your personality:
 - Warm, enthusiastic about literature, and helpful
@@ -90,31 +142,82 @@ export async function POST(request: Request) {
       parts: [{ text: msg.content }],
     }));
 
-    // Call Gemini API with streaming
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+    const geminiBody = {
+      system_instruction: {
+        parts: [{ text: fullSystemPrompt }],
+      },
+      contents: geminiMessages,
+      generationConfig: {
+        temperature: 0.8,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 1024,
+      },
+    };
 
-    const geminiResponse = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: fullSystemPrompt }],
-        },
-        contents: geminiMessages,
-        generationConfig: {
-          temperature: 0.8,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 1024,
-        },
+    // Call Gemini API with streaming (SSE)
+    let selectedModel = GEMINI_MODEL;
+    let geminiResponse = await fetch(
+      buildGeminiSseUrl({
+        apiKey: GEMINI_API_KEY,
+        apiVersion: GEMINI_API_VERSION,
+        model: selectedModel,
       }),
-    });
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(geminiBody),
+      }
+    );
+
+    let errText: string | null = null;
+    if (!geminiResponse.ok) {
+      errText = await geminiResponse.text();
+
+      // If the configured model doesn't exist anymore, attempt to auto-pick a valid one.
+      if (geminiResponse.status === 404) {
+        const fallbackModel = await getFallbackGeminiModelId(
+          GEMINI_API_KEY,
+          GEMINI_API_VERSION
+        );
+        if (
+          fallbackModel &&
+          normalizeGeminiModelId(fallbackModel) !== normalizeGeminiModelId(selectedModel)
+        ) {
+          selectedModel = fallbackModel;
+          geminiResponse = await fetch(
+            buildGeminiSseUrl({
+              apiKey: GEMINI_API_KEY,
+              apiVersion: GEMINI_API_VERSION,
+              model: selectedModel,
+            }),
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(geminiBody),
+            }
+          );
+          if (!geminiResponse.ok) errText = await geminiResponse.text();
+          else errText = null;
+        }
+      }
+    }
 
     if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      console.error("Gemini API error:", errText);
+      const errorPayload = errText ?? (await geminiResponse.text());
+      console.error("Gemini API error:", errorPayload);
+
+      const isDev = process.env.NODE_ENV !== "production";
+      const modelHint = `Set GEMINI_MODEL (current: "${selectedModel}") and/or GEMINI_API_VERSION (current: "${GEMINI_API_VERSION}") in .env.local.`;
+
       return Response.json(
-        { error: "AI service temporarily unavailable. Please try again." },
+        {
+          error:
+            geminiResponse.status === 404
+              ? `Gemini model not found. ${modelHint}`
+              : "AI service temporarily unavailable. Please try again.",
+          ...(isDev ? { debug: errorPayload } : {}),
+        },
         { status: 502 }
       );
     }

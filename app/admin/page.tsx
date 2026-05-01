@@ -12,7 +12,7 @@ export default function AdminDashboardPage() {
         Dashboard
       </Title>
       <p style={{ marginBottom: "24px", color: "gray" }}>
-        Welcome to the Libristo Admin Panel. Here is an overview of your store.
+        Welcome to the blendartbook Admin Panel. Here is an overview of your store.
       </p>
 
       {/* Top Analytics Cards */}
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
         <Col xs={24} lg={12}>
           <Card 
             title="Recent Orders" 
-            variant="borderless" // <--- CHANGED THIS
+            bordered={false}
             style={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
           >
             <div style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center", color: "gray" }}>
@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
         <Col xs={24} lg={12}>
           <Card 
             title="Top Selling Books" 
-            variant="borderless" // <--- CHANGED THIS
+            bordered={false}
             style={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
           >
             <div style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center", color: "gray" }}>

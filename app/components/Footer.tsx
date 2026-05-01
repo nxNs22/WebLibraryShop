@@ -166,13 +166,13 @@ export default function Footer() {
             </div>
 
             <p className="text-teal-400 font-heading font-bold text-lg">
-              #libristo
+              #blendartbook
             </p>
 
             {/* Logo */}
             <div className="mt-6">
               <span className="text-2xl font-heading font-bold tracking-wider text-white/30">
-                LIBRISTO
+                blendartbook
               </span>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-xs">
-            © 2008-2026 Libristo
+            © 2008-2026 blendartbook
           </p>
 
           {/* Payment methods */}

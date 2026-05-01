@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useId } from "react";
 import { MessageCircle, X, Send, Sparkles, Bot, User } from "lucide-react";
 
 interface Message {
@@ -17,17 +17,19 @@ const SUGGESTIONS = [
 ];
 
 export default function AIChatWidget() {
+  const instanceId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
       content:
-        "Hi there! 📚 I'm Libristo AI, your personal book assistant. I can help you discover amazing books, recommend reads based on your taste, or answer any questions about our library. What are you looking for today?",
+        "Hi there! 📚 I'm blendartbook AI, your personal book assistant. I can help you discover amazing books, recommend reads based on your taste, or answer any questions about our library. What are you looking for today?",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const idCounterRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -50,8 +52,9 @@ export default function AIChatWidget() {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
+    const userMessageId = `${instanceId}-m-${++idCounterRef.current}`;
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: userMessageId,
       role: "user",
       content: trimmed,
     };
@@ -68,7 +71,7 @@ export default function AIChatWidget() {
       })
     );
 
-    const assistantId = (Date.now() + 1).toString();
+    const assistantId = `${instanceId}-m-${++idCounterRef.current}`;
 
     // Add empty assistant message for streaming
     setMessages((prev) => [
@@ -189,7 +192,7 @@ export default function AIChatWidget() {
                   <span className="ai-chat-status" />
                 </div>
                 <div>
-                  <h3 className="ai-chat-title">Libristo AI</h3>
+                  <h3 className="ai-chat-title">blendartbook AI</h3>
                   <p className="ai-chat-subtitle">Your Book Assistant</p>
                 </div>
               </div>
@@ -292,7 +295,7 @@ export default function AIChatWidget() {
 
             {/* Footer */}
             <div className="ai-chat-footer">
-              Powered by Libristo AI ✨
+              Powered by blendartbook AI ✨
             </div>
           </div>
         </div>

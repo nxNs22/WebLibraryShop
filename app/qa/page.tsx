@@ -67,7 +67,7 @@ export default function QAPage() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-wide">Q&A</h1>
           <p className="text-lg text-teal-100 max-w-2xl mx-auto">
-            Find answers to frequently asked questions about Libristo. Can't find what you're looking for? 
+            Find answers to frequently asked questions about blendartbook. Can't find what you're looking for? 
             <span className="block mt-2 text-emerald-300">Contact our customer service team.</span>
           </p>
         </div>
@@ -147,10 +147,10 @@ export default function QAPage() {
                   <div>
                     <h3 className="font-bold text-gray-800 mb-1">Email</h3>
                     <a 
-                      href="mailto:support@libristo.com"
+                      href="mailto:support@blendartbook.com"
                       className="text-emerald-600 hover:text-emerald-700 font-semibold break-all"
                     >
-                      support@libristo.com
+                      support@blendartbook.com
                     </a>
                     <p className="text-sm text-gray-600 mt-2">
                       We respond within 24 hours

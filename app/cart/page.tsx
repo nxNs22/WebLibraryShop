@@ -1,20 +1,62 @@
 "use client";
 import { useCart } from "../context/CartContext";
+import { useMemo, useState } from "react";
 import { ShoppingCart, Truck, MapPin, FileText, Trash2, ChevronRight, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { calculateDiscount, calculateSubtotal, getPromoByCode, PromoRule } from "../lib/pricing";
 
 export default function CartPage() {
   // 1. cartItems yerine "cart" çekiyoruz. totalPrice'ı biz hesaplayacağız.
   const { cart, removeFromCart } = useCart();
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<PromoRule | null>(null);
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
 
   // 2. Toplam fiyatı güvenli bir şekilde hesaplıyoruz 
   // (Veritabanından string "120 TL" veya number gelebilir)
-  const totalPrice = cart.reduce((total, item) => {
-    const priceVal = typeof item.price === 'string' 
-      ? parseFloat(item.price.replace(/[^0-9.]/g, '')) 
-      : Number(item.price);
-    return total + (isNaN(priceVal) ? 0 : priceVal) * item.quantity;
-  }, 0);
+  const subtotal = calculateSubtotal(cart);
+
+  const discountAmount = useMemo(() => {
+    return calculateDiscount(subtotal, appliedPromo);
+  }, [appliedPromo, subtotal]);
+
+  const safeDiscountAmount = Math.min(discountAmount, subtotal);
+  const totalPrice = Math.max(subtotal - safeDiscountAmount, 0);
+
+  const applyPromoCode = () => {
+    const normalizedCode = promoInput.trim().toUpperCase();
+    if (!normalizedCode) {
+      setPromoMessage("Please enter a promo code.");
+      return;
+    }
+
+    const matchedPromo = getPromoByCode(normalizedCode);
+    if (!matchedPromo) {
+      setAppliedPromo(null);
+      setPromoMessage("This promo code is not valid.");
+      return;
+    }
+
+    if (matchedPromo.minSubtotal && subtotal < matchedPromo.minSubtotal) {
+      setAppliedPromo(null);
+      setPromoMessage(`This code requires at least ${matchedPromo.minSubtotal.toFixed(2)} TL subtotal.`);
+      return;
+    }
+
+    setAppliedPromo(matchedPromo);
+    setPromoInput(normalizedCode);
+    if (matchedPromo.type === "percent") {
+      setPromoMessage(`${matchedPromo.code} applied: ${matchedPromo.value}% discount.`);
+      return;
+    }
+    setPromoMessage(`${matchedPromo.code} applied: ${matchedPromo.value.toFixed(2)} TL off.`);
+  };
+
+  const clearPromoCode = () => {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoMessage(null);
+  };
 
   const steps = [
     { name: "Shopping cart", icon: <ShoppingCart size={20} />, active: true },
@@ -55,7 +97,7 @@ export default function CartPage() {
         {cart.length === 0 ? (
           <div className="text-center py-20 italic text-gray-400 border-b">Your cart is empty.</div>
         ) : (
-          cart.map((item: any) => (
+          cart.map((item) => (
             <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 items-center gap-4 py-6 border-b">
               <div className="col-span-2 flex gap-4">
                 
@@ -108,14 +150,48 @@ export default function CartPage() {
         {/* 4. ALT BİLGİ VE COUPON */}
         <div className="mt-12 flex flex-col md:flex-row justify-between items-start gap-8">
           <div className="w-full md:w-auto">
-            <div className="bg-[#F9FBF9] p-4 border rounded flex gap-2 items-center">
+            <div className="bg-[#F9FBF9] p-4 border rounded flex flex-wrap gap-2 items-center">
               <span className="text-xs font-bold text-[#2CB391]">Do you have a discount coupon?</span>
-              <input type="text" className="border p-1 text-sm outline-none w-32" placeholder="Code..." />
-              <button className="bg-[#2CB391] text-white px-4 py-1.5 text-xs font-bold rounded hover:bg-[#249278] transition-colors">Apply</button>
+              <input
+                type="text"
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value)}
+                className="border p-1 text-sm outline-none w-36 uppercase"
+                placeholder="Code..."
+              />
+              <button
+                type="button"
+                onClick={applyPromoCode}
+                className="bg-[#2CB391] text-white px-4 py-1.5 text-xs font-bold rounded hover:bg-[#249278] transition-colors"
+              >
+                Apply
+              </button>
+              {appliedPromo && (
+                <button
+                  type="button"
+                  onClick={clearPromoCode}
+                  className="border border-gray-300 text-gray-600 px-3 py-1.5 text-xs font-bold rounded hover:bg-gray-100 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+              <div className="w-full text-[11px] text-gray-500">
+                Example codes: <strong>GIFT10</strong>, <strong>WELCOME50</strong>, <strong>VOUCHER20</strong>
+              </div>
+              {promoMessage && (
+                <div className={`w-full text-xs font-semibold ${appliedPromo ? "text-emerald-700" : "text-red-600"}`}>
+                  {promoMessage}
+                </div>
+              )}
             </div>
           </div>
           <div className="text-right">
-            <p className="text-gray-500 text-sm">Total price:</p>
+            <p className="text-gray-500 text-sm">Subtotal:</p>
+            <p className="text-xl font-extrabold text-[#1A2E35]">{subtotal.toFixed(2)} TL</p>
+            {safeDiscountAmount > 0 && (
+              <p className="text-sm font-bold text-emerald-600">- {safeDiscountAmount.toFixed(2)} TL discount</p>
+            )}
+            <p className="text-gray-500 text-sm mt-1">Total price:</p>
             <p className="text-4xl font-black text-[#1A2E35]">{totalPrice.toFixed(2)} TL</p>
           </div>
         </div>
@@ -125,16 +201,20 @@ export default function CartPage() {
           <Link href="/" className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">
             <ArrowLeft size={14} /> Back to the shop
           </Link>
-          <button 
-            disabled={cart.length === 0}
+          <Link
+            href={cart.length === 0 ? "#" : "/checkout"}
+            onClick={(event) => {
+              if (cart.length === 0) event.preventDefault();
+            }}
+            aria-disabled={cart.length === 0}
             className={`px-10 py-4 rounded font-bold flex items-center gap-2 transition-all ${
-              cart.length === 0 
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+              cart.length === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
                 : "bg-[#F14D5D] hover:bg-[#d43f4d] text-white"
             }`}
           >
             Proceed to delivery & payment <ChevronRight size={18} />
-          </button>
+          </Link>
         </div>
       </div>
     </div>
