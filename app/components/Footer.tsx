@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-dark text-white" id="footer">
+    <footer className="bg-teal-900 text-white" id="footer">
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-4 pt-16 pb-10">
         {/* Tagline */}
